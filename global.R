@@ -10,14 +10,17 @@ library(ggplot2);
 ##################
 data0<-read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vROwDDAbMjQcvR2X5A7XMhmbd9yH-FhShgjR7xmaqXtokeuLplBcZmjvwwoAOiIwKhefBuCv8UcqoFJ/pub?gid=0&single=true&output=csv")
 daterr<-data0
-daterr$var<-paste(daterr$variable,daterr$units)
-daterr$group<-paste(daterr$variable,daterr$units)
+daterr$var<-paste(daterr$variable,",", daterr$units,sep="")
+daterr$group<-paste(daterr$variable,", ",daterr$units,sep="")
 
 vars<-c("all",daterr$var)
 
-manmade_naturals<-c("all",unique(daterr$manmade_natural))
-classes<-c("all",sort(unique(daterr$class),decreasing=TRUE))
-domains<-c("all",sort(unique(daterr$domain),decreasing=TRUE))
-
+domains<-c("all",as.character(sort(unique(daterr$domain),decreasing=FALSE)))
+classes<-c("all",as.character(sort(unique(daterr$class),decreasing=FALSE)))
 
 categoricals<-c("none","class","domain","variable")
+
+
+
+min(daterr$value)
+

@@ -4,32 +4,29 @@ server <- function(input, output, session) {
   daterr_one<- reactive({
     if(input$var=="all"){one<-daterr}
     if(input$var!="all"){one<-subset(daterr,daterr$var==input$var)}
-    
     filtered<-one
-    if(input$facet=="none"){filtered$facet<-""}
-    if(input$facet=="class"){filtered$facet<-as.factor(filtered$class)}
-    if(input$facet=="domain"){filtered$facet<-as.factor(filtered$domain)}
-    if(input$facet=="variable"){filtered$facet<-as.factor(filtered$variable)}
-#    filtered$facet<-as.factor(input$facet)
-    if(input$grouping1=="none" & input$grouping2=="none"){filtered$group<-"all"}
-    if(input$grouping1!="none"){filtered$group<-filtered[,input$grouping1]}
-    if(input$grouping2!="none"){filtered$group<-paste(filtered$group,",",filtered[,input$grouping2],sep="")}
-    if(input$grouping1=="none" & input$grouping2!="none"){filtered$group<-filtered[,input$grouping2]}
-    filtered
+    if(input$FilterDomains!="all"){filtered<-filtered %>% filter(domain==input$FilterDomains)}
+    if(input$FilterClasses!="all"){filtered<-filtered %>% filter(class==input$FilterClasses)}
+    filtered$var<-paste(filtered$var," ", filtered$domain,sep="")
     
+    powers<-log10(filtered$value) %>% trunc()
+    quantiles<-quantile(powers,probs=c(0.1,0.9))
+    which_low<-powers<quantiles[1]
+    which_high<-powers<quantiles[2]
+    
+#    filtered$value[which_low]<-filtered$value[which_low]*10^(as.numeric(round(quantiles[1])))
+#    filtered$value[which_high]<-filtered$value[which_high]*10^(-1*as.numeric(round(quantiles[1])))
+    
+#    filtered$var[which_low]<-paste(filtered$var," / ", 10^(as.numeric(round(quantiles[1]))))
+#    filtered$var[which_high]<-paste(filtered$var," * ", 10^(as.numeric(round(quantiles[1]))))
+    
+    filtered
   })
   
   output$plot_one<-renderPlot({
-    plotit1<-ggplot(daterr_one(),aes(x=factor(group),y=value)) +
-#      geom_boxplot()+
+    plotit1<-ggplot(daterr_one(),aes(x=var,y=value)) +
       geom_bar(stat="identity")+
-      facet_wrap(~facet)+
-#      geom_violin()+
-#      geom_jitter(alpha=0.25,size=0.75)+
-  #    xlab("group")+
-  #    ylab(input$var)+
-  #    scale_x_discrete(limits = rev(levels(factor(daterr_one()$group))))+
-  #    coord_flip()+
+      coord_flip()+
       theme_bw()+
       theme(strip.text = element_text(size = rel(1), vjust = 0), 
             panel.spacing = unit(0, "lines"),
@@ -39,7 +36,7 @@ server <- function(input, output, session) {
   plotit1
   })
   
-  
+  output$tabledata_one<-renderTable(daterr_one(),digits=3,spacing="xs")
   
 }
   
